@@ -207,7 +207,12 @@ export default function App() {
     };
     
     // Generate PDF
-    html2pdf().set(opt).from(element).save();
+    try {
+      html2pdf().set(opt).from(element).save();
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('There was an error generating the PDF. Please try again.');
+    }
   }
 
   const handlePinSubmit = async (e: React.FormEvent) => {
