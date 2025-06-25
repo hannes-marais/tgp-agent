@@ -1025,6 +1025,41 @@ body {
   flex-direction: column;
   background: var(--color-white);
   overflow: hidden;
+  position: relative;
+}
+
+/* Chat Header */
+.chatHeader {
+  position: absolute;
+  top: 1rem;
+  right: 2rem;
+  z-index: 10;
+}
+
+.downloadButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 0;
+  color: #36164A;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.downloadButton:hover {
+  background: #36164A;
+  color: white;
+  border-color: #36164A;
+}
+
+.downloadButton svg {
+  width: 18px;
+  height: 18px;
 }
 
 .messagesContainer {

@@ -72,6 +72,35 @@ export default function App() {
     setShouldSubmit(true)
   }
 
+  const downloadConversation = () => {
+    if (messages.length === 0) return;
+    
+    // Create markdown content
+    let markdown = `# Bruce Cleveland EM Conversation\n\n`;
+    markdown += `Date: ${new Date().toLocaleString()}\n\n`;
+    markdown += `---\n\n`;
+    
+    messages.forEach(msg => {
+      if (msg.role === 'user') {
+        markdown += `## User:\n${msg.content}\n\n`;
+      } else {
+        markdown += `## Bruce Cleveland:\n${msg.content}\n\n`;
+      }
+      markdown += `---\n\n`;
+    });
+    
+    // Create blob and download
+    const blob = new Blob([markdown], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `bruce-cleveland-conversation-${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   const handlePinSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
@@ -187,6 +216,23 @@ export default function App() {
       {/* Main Chat Area */}
       <div className="appMain">
         <div className="chatContainer">
+          {/* Chat Header with Download Button */}
+          {messages.length > 0 && (
+            <div className="chatHeader">
+              <button 
+                className="downloadButton" 
+                onClick={downloadConversation}
+                title="Download conversation as Markdown"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Download Conversation
+              </button>
+            </div>
+          )}
           <div className="messagesContainer">
             {messages.length === 0 && (
               <div className="examplePrompts">
