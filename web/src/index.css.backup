@@ -134,7 +134,7 @@ body {
 }
 
 .provider-selector {
-  padding: var(--space-lg);
+  padding: var(--space-md);
   background: var(--color-gray-50);
   border-bottom: 1px solid var(--color-border);
   display: flex;
@@ -179,7 +179,7 @@ body {
 
 .message {
   max-width: 85%;
-  padding: var(--space-lg);
+  padding: var(--space-md);
   border-radius: var(--radius-xl);
   line-height: 1.6;
   position: relative;
@@ -270,7 +270,7 @@ body {
 .message-content .code-block {
   background: var(--color-gray-900);
   color: #e2e8f0;
-  padding: var(--space-lg);
+  padding: var(--space-md);
   border-radius: var(--radius-lg);
   margin: var(--space-lg) 0;
   overflow-x: auto;
@@ -330,7 +330,7 @@ body {
   background: rgba(186, 112, 213, 0.05);
   border-left: 4px solid var(--color-accent);
   margin: var(--space-lg) 0;
-  padding: var(--space-lg);
+  padding: var(--space-md);
   font-style: italic;
   color: var(--color-gray-800);
   border-radius: 0 var(--radius-md) var(--radius-md) 0;
@@ -384,7 +384,7 @@ body {
 
 .input-container input {
   flex: 1;
-  padding: var(--space-lg);
+  padding: var(--space-md);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   font-size: 1rem;
@@ -466,14 +466,14 @@ body {
 
 .example-prompts {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: var(--space-md);
   max-width: 600px;
   width: 100%;
 }
 
 .example-prompt {
-  padding: var(--space-lg);
+  padding: var(--space-md);
   background: var(--color-white);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
@@ -513,7 +513,7 @@ body {
 }
   
   .chat-header {
-    padding: var(--space-lg);
+    padding: var(--space-md);
   }
   
   .header-content {
@@ -586,7 +586,7 @@ body {
   }
   
   .chat-header {
-    padding: var(--space-lg);
+    padding: var(--space-md);
   }
   
   .header-content {
@@ -606,7 +606,7 @@ body {
   }
   
   .messages-container {
-    padding: var(--space-lg);
+    padding: var(--space-md);
   }
   
   .message {
@@ -615,7 +615,7 @@ body {
   }
   
   .input-container {
-    padding: var(--space-lg);
+    padding: var(--space-md);
   }
   
   .example-prompts {
@@ -639,10 +639,6 @@ body {
     font-size: 1.1rem;
   }
 }
-  background: var(--color-gray-300);
-  border-radius: 3px;
-}
-
 .messages-container::-webkit-scrollbar-thumb:hover {
   background: var(--color-accent);
 }
@@ -738,7 +734,7 @@ body {
 }
 
 .pin-input {
-  padding: var(--space-lg);
+  padding: var(--space-md);
   border: 2px solid var(--color-border);
   border-radius: var(--radius-lg);
   font-size: 1.2rem;

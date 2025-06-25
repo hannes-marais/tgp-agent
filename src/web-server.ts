@@ -89,8 +89,8 @@ const server = createServer(async (req, res) => {
     return;
   }
 
-  // Serve static assets from public folder (favicon, logo)
-  if (pathname.startsWith('/favicon') || pathname.startsWith('/tgp-logo')) {
+  // Serve static assets from public folder (favicon, logo, images)
+  if (pathname === '/favicon.ico' || pathname.startsWith('/favicon') || pathname.startsWith('/tgp-logo') || pathname.startsWith('/bruce-thumb') || pathname.startsWith('/tgp-favicon')) {
     try {
       const filePath = join(process.cwd(), 'dist', pathname);
       if (existsSync(filePath)) {
@@ -103,6 +103,8 @@ const server = createServer(async (req, res) => {
           res.setHeader('Content-Type', 'image/png');
         } else if (pathname.endsWith('.webp')) {
           res.setHeader('Content-Type', 'image/webp');
+        } else if (pathname.endsWith('.jpg') || pathname.endsWith('.jpeg')) {
+          res.setHeader('Content-Type', 'image/jpeg');
         }
         
         res.writeHead(200);

@@ -1,11 +1,14 @@
 import { useChat } from 'ai/react'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [pinInput, setPinInput] = useState('')
   const [pinError, setPinError] = useState('')
+  const [shouldSubmit, setShouldSubmit] = useState(false)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
   
   const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
     api: `/api/chat/openai`,
@@ -20,8 +23,53 @@ export default function App() {
     "What is the difference between go-to-market and market engineering?"
   ]
 
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
+  // Auto-resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto'
+      textareaRef.current.style.height = textareaRef.current.scrollHeight + 'px'
+    }
+  }, [input])
+
+  // Submit when shouldSubmit is true
+  useEffect(() => {
+    if (shouldSubmit && input.trim()) {
+      const form = document.querySelector('.inputForm') as HTMLFormElement
+      if (form) {
+        form.requestSubmit()
+      }
+      setShouldSubmit(false)
+    }
+  }, [shouldSubmit, input])
+
+  // Global Enter key handler for PIN screen
+  useEffect(() => {
+    if (!isAuthenticated) {
+      const handleGlobalKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Enter' && e.target instanceof HTMLInputElement) {
+          const form = (e.target as HTMLElement).closest('form')
+          if (form && form.classList.contains('pin-form')) {
+            e.preventDefault()
+            handlePinSubmit(e as any)
+          }
+        }
+      }
+      
+      document.addEventListener('keydown', handleGlobalKeyDown)
+      return () => document.removeEventListener('keydown', handleGlobalKeyDown)
+    }
+  }, [isAuthenticated, pinInput])
+
   const handleExampleClick = (prompt: string) => {
+    // Set the input value
     handleInputChange({ target: { value: prompt } } as any)
+    // Trigger submit on next render
+    setShouldSubmit(true)
   }
 
   const handlePinSubmit = (e: React.FormEvent) => {
@@ -45,24 +93,31 @@ export default function App() {
       <div className="pin-overlay">
         <div className="pin-dialog">
           <div className="pin-header">
-            <img src="/tgp-logo.webp" alt="Traction Gap Partners" className="pin-logo" />
-            <h2>Welcome to Bruce Cleveland EM</h2>
-            <p>Enter PIN code to chat with Bruce</p>
+            <div className="pin-logos">
+              <img src="/tgp-logo.webp" alt="Traction Gap Partners" className="pin-logo" />
+              <img src="/bruce-thumb.jpg" alt="Bruce Cleveland" className="pin-bruce-photo" />
+            </div>
+            <h2>Bruce Cleveland EM</h2>
           </div>
           
           <form onSubmit={handlePinSubmit} className="pin-form">
-            <input
-              type="password"
-              value={pinInput}
-              onChange={handlePinChange}
-              placeholder="Enter PIN code"
-              className={`pin-input ${pinError ? 'pin-error' : ''}`}
-              maxLength={4}
-              autoFocus
-            />
-            {pinError && <div className="pin-error-message">{pinError}</div>}
+            <div className="pin-input-group">
+              <label htmlFor="pin">Enter PIN to continue:</label>
+              <input
+                id="pin"
+                type="password"
+                value={pinInput}
+                onChange={handlePinChange}
+                className={`pin-input ${pinError ? 'pin-error' : ''}`}
+                placeholder="• • • •"
+                maxLength={4}
+                autoFocus
+              />
+              {pinError && <div className="pin-error">{pinError}</div>}
+            </div>
+            
             <button type="submit" className="pin-submit">
-              Enter
+              Start consultation
             </button>
           </form>
         </div>
@@ -71,119 +126,95 @@ export default function App() {
   }
 
   return (
-    <div className="chat-container">
-      <div className="chat-header">
-        <div className="header-content">
-          <img src="/tgp-logo.webp" alt="Traction Gap Partners" className="header-logo" />
-          <div className="header-text">
-            <h1>Bruce Cleveland EM</h1>
-            <p>Market Engineering Insights for TGP Partners</p>
+    <div className="appContainer">
+      {/* Left Sidebar with Branding */}
+      <div className="appSidebar">
+        <div className="headerContent">
+          <div className="branding">
+            <div className="logos">
+              <img src="/tgp-logo.webp" alt="Traction Gap Partners" className="tgpLogo" />
+            </div>
           </div>
+          
+          <h1>Bruce Cleveland EM</h1>
+          
+          <div className="description">
+            Get strategic guidance on category creation, market engineering, startup scaling, 
+            and the Traction Gap Framework from Bruce Cleveland's expertise digitally coded 
+            into an Expert Model.
+          </div>
+        </div>
+        
+        <div className="footer">
+          <a href="https://tractiongappartners.com" target="_blank" rel="noopener noreferrer">
+            Learn more about the Traction Gap Framework at tractiongappartners.com
+          </a>
         </div>
       </div>
 
-      <div className="messages-container">
-        {messages.length === 0 ? (
-          <div className="empty-state">
-            <div>
-              <h3>Welcome to Bruce Cleveland EM</h3>
-              <p>Ask me about market engineering, the Traction Gap Framework, or scaling strategies. Start a conversation by typing a message or try one of these examples:</p>
-            </div>
-            <div className="example-prompts">
-              {examplePrompts.map((prompt, index) => (
-                <button
-                  key={index}
-                  className="example-prompt"
-                  onClick={() => handleExampleClick(prompt)}
-                >
-                  {prompt}
-                </button>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <>
-            {messages.map((message, index) => (
-              <div key={index} className={`message ${message.role}`}>
-                <strong>{message.role === 'user' ? 'You' : 'Bruce Cleveland'}</strong>
-                <div className="message-content">
-                  {message.role === 'user' ? (
-                    message.content
-                  ) : (
-                    <ReactMarkdown 
-                      components={{
-                        // Style code blocks
-                        code: ({ node, inline, ...props }) => (
-                          inline ? (
-                            <code className="inline-code" {...props} />
-                          ) : (
-                            <pre className="code-block">
-                              <code {...props} />
-                            </pre>
-                          )
-                        ),
-                        // Style lists
-                        ul: ({ ...props }) => <ul className="markdown-list" {...props} />,
-                        ol: ({ ...props }) => <ol className="markdown-list" {...props} />,
-                        // Style links
-                        a: ({ ...props }) => (
-                          <a 
-                            className="markdown-link" 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            {...props} 
-                          />
-                        ),
-                        // Style headers
-                        h1: ({ ...props }) => <h1 className="markdown-h1" {...props} />,
-                        h2: ({ ...props }) => <h2 className="markdown-h2" {...props} />,
-                        h3: ({ ...props }) => <h3 className="markdown-h3" {...props} />,
-                        // Style blockquotes
-                        blockquote: ({ ...props }) => (
-                          <blockquote className="markdown-blockquote" {...props} />
-                        ),
-                      }}
-                    >
-                      {message.content}
-                    </ReactMarkdown>
-                  )}
+      {/* Main Chat Area */}
+      <div className="appMain">
+        <div className="chatContainer">
+          <div className="messagesContainer">
+            {messages.length === 0 && (
+              <div className="examplePrompts">
+                {examplePrompts.map((prompt, index) => (
+                  <div
+                    key={index}
+                    className="examplePrompt"
+                    onClick={() => handleExampleClick(prompt)}
+                  >
+                    {prompt}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {messages.map((message) => (
+              <div key={message.id} className={`message ${message.role}`}>
+                <div className="messageContent">
+                  <ReactMarkdown>{message.content}</ReactMarkdown>
                 </div>
               </div>
             ))}
+
             {isLoading && (
-              <div className="message loading">
-                <strong>Bruce Cleveland:</strong> <span className="thinking">Thinking...</span>
+              <div className="message assistant">
+                <div className="messageContent">
+                  <em>Bruce is thinking...</em>
+                </div>
               </div>
             )}
-          </>
-        )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          <div className="inputContainer">
+            <form onSubmit={handleSubmit} className="inputForm">
+              <textarea
+                ref={textareaRef}
+                value={input}
+                placeholder="Ask about market engineering, scaling strategies, or the Traction Gap Framework..."
+                onChange={handleInputChange}
+                className="messageInput"
+                rows={1}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault()
+                    handleSubmit(e)
+                  }
+                }}
+              />
+              <button 
+                type="submit" 
+                disabled={isLoading || !input.trim()}
+                className="sendButton"
+              >
+                →
+              </button>
+            </form>
+          </div>
+        </div>
       </div>
-
-      <form onSubmit={handleSubmit} className="input-container">
-        <input
-          value={input}
-          onChange={handleInputChange}
-          placeholder="Ask about market engineering, scaling strategies, or the Traction Gap Framework..."
-          disabled={isLoading}
-        />
-        <button type="submit" disabled={isLoading || !input.trim()}>
-          {isLoading ? 'Sending...' : 'Send'}
-        </button>
-      </form>
-
-      <footer className="chat-footer">
-        <p>
-          Learn more about the Traction Gap Framework at{' '}
-          <a 
-            href="https://tractiongappartners.com" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="footer-link"
-          >
-            tractiongappartners.com
-          </a>
-        </p>
-      </footer>
     </div>
   )
 }

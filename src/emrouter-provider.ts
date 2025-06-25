@@ -1,5 +1,9 @@
 // EMRouter provider for AI SDK
-import { LanguageModelV1 } from '@ai-sdk/provider';
+import { 
+  LanguageModelV1, 
+  LanguageModelV1CallOptions,
+  LanguageModelV1StreamPart 
+} from '@ai-sdk/provider';
 
 interface EMRouterConfig {
   endpoint: string;
@@ -12,8 +16,12 @@ export function createEMRouter(config: EMRouterConfig): LanguageModelV1 {
     specificationVersion: 'v1',
     provider: 'emrouter',
     modelId: config.model,
+    defaultObjectGenerationMode: 'tool',
     
-    async doGenerate(options) {
+    async doGenerate(options: LanguageModelV1CallOptions) {
+      const prompt = options.prompt;
+      const messages = (prompt as any).messages || [];
+      
       const response = await fetch(`${config.endpoint}/v1/chat/completions`, {
         method: 'POST',
         headers: {
@@ -22,10 +30,10 @@ export function createEMRouter(config: EMRouterConfig): LanguageModelV1 {
         },
         body: JSON.stringify({
           model: config.model,
-          messages: options.messages.map(msg => ({
+          messages: messages.map((msg: any) => ({
             role: msg.role,
             content: Array.isArray(msg.content) 
-              ? msg.content.map(part => 
+              ? msg.content.map((part: any) => 
                   part.type === 'text' ? part.text : ''
                 ).join('')
               : msg.content
@@ -40,7 +48,7 @@ export function createEMRouter(config: EMRouterConfig): LanguageModelV1 {
         throw new Error(`EMRouter error: ${response.status} ${response.statusText}`);
       }
 
-      const data = await response.json();
+      const data: any = await response.json();
       const content = data.choices?.[0]?.message?.content || '';
       
       return {
@@ -49,11 +57,21 @@ export function createEMRouter(config: EMRouterConfig): LanguageModelV1 {
           promptTokens: data.usage?.prompt_tokens || 0,
           completionTokens: data.usage?.completion_tokens || 0
         },
-        finishReason: 'stop'
+        finishReason: 'stop',
+        rawCall: {
+          rawPrompt: messages,
+          rawSettings: {
+            temperature: options.temperature,
+            maxTokens: options.maxTokens
+          }
+        }
       };
     },
 
-    async doStream(options) {
+    async doStream(options: LanguageModelV1CallOptions) {
+      const prompt = options.prompt;
+      const messages = (prompt as any).messages || [];
+      
       const response = await fetch(`${config.endpoint}/v1/chat/completions`, {
         method: 'POST',
         headers: {
@@ -62,10 +80,10 @@ export function createEMRouter(config: EMRouterConfig): LanguageModelV1 {
         },
         body: JSON.stringify({
           model: config.model,
-          messages: options.messages.map(msg => ({
+          messages: messages.map((msg: any) => ({
             role: msg.role,
             content: Array.isArray(msg.content) 
-              ? msg.content.map(part => 
+              ? msg.content.map((part: any) => 
                   part.type === 'text' ? part.text : ''
                 ).join('')
               : msg.content
@@ -84,7 +102,7 @@ export function createEMRouter(config: EMRouterConfig): LanguageModelV1 {
       const decoder = new TextDecoder();
       
       return {
-        stream: new ReadableStream({
+        stream: new ReadableStream<LanguageModelV1StreamPart>({
           async start(controller) {
             try {
               while (true) {
@@ -140,7 +158,14 @@ export function createEMRouter(config: EMRouterConfig): LanguageModelV1 {
               controller.error(error);
             }
           }
-        })
+        }),
+        rawCall: {
+          rawPrompt: messages,
+          rawSettings: {
+            temperature: options.temperature,
+            maxTokens: options.maxTokens
+          }
+        }
       };
     }
   };
