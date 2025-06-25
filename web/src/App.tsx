@@ -12,9 +12,11 @@ export default function App() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   
+  const [provider, setProvider] = useState('openai');
+
   const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
-    api: `/api/chat/openai`,
-  })
+    api: '/api/chat',
+  });
 
   const examplePrompts = [
     "What is the Traction Gap Framework?",

@@ -7,10 +7,18 @@ import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import 'dotenv/config';
 
+// Validate environment variables
+if (!process.env.EMROUTER_ENDPOINT) {
+  throw new Error('EMROUTER_ENDPOINT environment variable is not set.');
+}
+if (!process.env.EMROUTER_API_KEY) {
+  throw new Error('EMROUTER_API_KEY environment variable is not set.');
+}
+
 // Create EMRouter client using OpenAI SDK
 const emrouter = createOpenAI({
-  baseURL: process.env.EMROUTER_ENDPOINT || "http://localhost:8123/v1",
-  apiKey: process.env.EMROUTER_API_KEY || "your-emrouter-api-key"
+  baseURL: process.env.EMROUTER_ENDPOINT,
+  apiKey: process.env.EMROUTER_API_KEY
 });
 
 const server = createServer(async (req, res) => {
@@ -41,17 +49,16 @@ const server = createServer(async (req, res) => {
         res.setHeader('Content-Type', 'application/json');
         res.writeHead(200);
         res.end(JSON.stringify({ valid: isValid }));
-      } catch {
-        res.writeHead(400);
-        res.end('Invalid request');
+      } catch (error) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Invalid JSON' }));
       }
     });
     return;
   }
 
   // API Routes for chat - Compatible with useChat hook
-  if (pathname.startsWith('/api/chat/') && req.method === 'POST') {
-    const provider = pathname.split('/').pop();
+  if (pathname === '/api/chat' && req.method === 'POST') {
     
     let body = '';
     req.on('data', chunk => body += chunk);
@@ -59,16 +66,7 @@ const server = createServer(async (req, res) => {
       try {
         const { messages } = JSON.parse(body);
 
-        let model;
-        if (provider === 'openai') {
-          model = emrouter(process.env.EMROUTER_BRUCE_MODEL || 'bruce-cleveland');
-        } else if (provider === 'anthropic') {
-          model = emrouter(process.env.EMROUTER_EMMA_MODEL || 'emma');
-        } else {
-          res.writeHead(400);
-          res.end('Invalid provider');
-          return;
-        }
+        const model = emrouter(process.env.EMROUTER_BRUCE_MODEL || 'bruce-cleveland');
 
         const result = await streamText({
           model,
