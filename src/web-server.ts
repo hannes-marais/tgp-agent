@@ -26,7 +26,6 @@ const PORT = process.env.PORT || 3001;
 app.use(bodyParser.json());
 
 // Serve static files from the 'dist' directory
-app.use(express.static(join(process.cwd(), 'public')));
 app.use(express.static(join(process.cwd(), 'dist')));
 
 // API route for PIN validation
