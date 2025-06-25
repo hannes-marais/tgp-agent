@@ -93,3 +93,50 @@ package.json          # Project dependencies and scripts
 ## License
 
 This project is licensed under the ISC License.
+
+## Development Scripts
+
+Use these scripts to manage the development environment cleanly:
+
+### Quick Start
+```bash
+# Start both frontend and backend
+npm run dev:start
+
+# Check if servers are running
+npm run dev:status
+
+# Stop all servers
+npm run dev:stop
+
+# Restart servers
+npm run dev:restart
+```
+
+### Manual Control
+```bash
+# Using the script directly
+./dev-control.sh start    # Start both servers
+./dev-control.sh stop     # Stop all servers  
+./dev-control.sh restart  # Restart servers
+./dev-control.sh status   # Check status
+```
+
+### URLs
+- **Frontend (React)**: http://localhost:3000
+- **Backend API**: http://localhost:3001
+- **Simple Chat**: http://localhost:3001/simple
+
+### Troubleshooting
+If you encounter port conflicts or zombie processes:
+```bash
+npm run dev:stop  # This will clean up all related processes
+npm run dev:start # Start fresh
+```
+
+The script automatically:
+- Kills any existing processes on ports 3000/3001
+- Cleans up zombie esbuild processes
+- Starts backend and frontend in correct order
+- Verifies both servers started successfully
+- Provides clear status feedback

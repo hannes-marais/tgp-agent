@@ -11,20 +11,9 @@
     "clean": "rm -rf dist",
     "server": "tsx src/server.ts",
     "web": "tsx src/web-server.ts",
-    "dev:frontend": "vite --host 127.0.0.1 --port 3000",
+    "dev:frontend": "vite --host 0.0.0.0 --port 3000",
     "dev:backend": "tsx src/web-server.ts",
-    "dev:full": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "dev:start": "./dev-control.sh start",
-    "dev:stop": "./dev-control.sh stop",
-    "dev:restart": "./dev-control.sh restart",
-    "dev:status": "./dev-control.sh status",
-    "deploy": "./deploy.sh",
-    "health": "./health-check.sh",
-    "deploy:prod": "./deploy-to-production.sh",
-    "start:prod": "pkill -f \"node.*web-server\" || true; nohup npm run web > /tmp/tgp-agent.log 2>&1 &",
-    "stop:prod": "pkill -f \"node.*web-server\"",
-    "logs:prod": "tail -f /tmp/tgp-agent.log",
-    "status:prod": "./health-check.sh"
+    "dev:full": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\""
   },
   "repository": {
     "type": "git",
@@ -48,8 +37,7 @@
     "@ai-sdk/anthropic": "^1.0.8",
     "@ai-sdk/openai": "^1.0.18",
     "ai": "^4.0.34",
-    "dotenv": "^16.4.7",
-    "react-markdown": "^10.1.0"
+    "dotenv": "^16.4.7"
   },
   "devDependencies": {
     "@types/node": "^22.10.5",
