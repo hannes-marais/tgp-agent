@@ -35,6 +35,8 @@
     "@ai-sdk/openai": "^1.0.18",
     "ai": "^4.0.34",
     "dotenv": "^16.4.7",
+    "html2pdf.js": "^0.10.3",
+    "marked": "^15.0.12",
     "react-markdown": "^10.1.0"
   },
   "devDependencies": {
