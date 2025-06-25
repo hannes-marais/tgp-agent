@@ -174,8 +174,8 @@ export function createEMRouter(config: EMRouterConfig): LanguageModelV1 {
 // Create EMRouter instances for different archetypes
 export function emrouter(model: string) {
   return createEMRouter({
-    endpoint: 'http://localhost:8123',
-    apiKey: 'emr-prod-2024-xa7k9m3n5p',
+    endpoint: process.env.EMROUTER_ENDPOINT?.replace('/v1', '') || 'http://localhost:8123',
+    apiKey: process.env.EMROUTER_API_KEY || 'your-emrouter-api-key',
     model
   });
 }

@@ -9,8 +9,8 @@ import 'dotenv/config';
 
 // Create EMRouter client using OpenAI SDK
 const emrouter = createOpenAI({
-  baseURL: "http://localhost:8123/v1",
-  apiKey: "emr-prod-2024-xa7k9m3n5p"
+  baseURL: process.env.EMROUTER_ENDPOINT || "http://localhost:8123/v1",
+  apiKey: process.env.EMROUTER_API_KEY || "your-emrouter-api-key"
 });
 
 const server = createServer(async (req, res) => {
@@ -28,6 +28,27 @@ const server = createServer(async (req, res) => {
   const url = new URL(req.url || '', `http://${req.headers.host}`);
   const pathname = url.pathname;
 
+  // API route for PIN validation
+  if (pathname === '/api/validate-pin' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', () => {
+      try {
+        const { pin } = JSON.parse(body);
+        const correctPin = process.env.APP_PIN_CODE || '7893';
+        const isValid = pin === correctPin;
+        
+        res.setHeader('Content-Type', 'application/json');
+        res.writeHead(200);
+        res.end(JSON.stringify({ valid: isValid }));
+      } catch {
+        res.writeHead(400);
+        res.end('Invalid request');
+      }
+    });
+    return;
+  }
+
   // API Routes for chat - Compatible with useChat hook
   if (pathname.startsWith('/api/chat/') && req.method === 'POST') {
     const provider = pathname.split('/').pop();
@@ -40,9 +61,9 @@ const server = createServer(async (req, res) => {
 
         let model;
         if (provider === 'openai') {
-          model = emrouter('bruce-cleveland');
+          model = emrouter(process.env.EMROUTER_BRUCE_MODEL || 'bruce-cleveland');
         } else if (provider === 'anthropic') {
-          model = emrouter('emma');
+          model = emrouter(process.env.EMROUTER_EMMA_MODEL || 'emma');
         } else {
           res.writeHead(400);
           res.end('Invalid provider');

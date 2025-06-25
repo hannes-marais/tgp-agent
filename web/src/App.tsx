@@ -72,13 +72,25 @@ export default function App() {
     setShouldSubmit(true)
   }
 
-  const handlePinSubmit = (e: React.FormEvent) => {
+  const handlePinSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (pinInput === '7893') {
-      setIsAuthenticated(true)
-      setPinError('')
-    } else {
-      setPinError('Invalid PIN code. Please try again.')
+    try {
+      const response = await fetch('/api/validate-pin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin: pinInput })
+      })
+      const { valid } = await response.json()
+      
+      if (valid) {
+        setIsAuthenticated(true)
+        setPinError('')
+      } else {
+        setPinError('Invalid PIN code. Please try again.')
+        setPinInput('')
+      }
+    } catch {
+      setPinError('Error validating PIN. Please try again.')
       setPinInput('')
     }
   }
