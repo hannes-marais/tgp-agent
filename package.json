@@ -1,0 +1,42 @@
+{
+  "name": "tgp-agent",
+  "version": "1.0.0",
+  "description": "AI agent built with Vercel AI SDK",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "clean": "rm -rf dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hannes-marais/tgp-agent.git"
+  },
+  "keywords": [
+    "ai",
+    "agent",
+    "vercel",
+    "openai",
+    "anthropic",
+    "typescript"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hannes-marais/tgp-agent/issues"
+  },
+  "homepage": "https://github.com/hannes-marais/tgp-agent#readme",
+  "dependencies": {
+    "@ai-sdk/anthropic": "^1.0.8",
+    "@ai-sdk/openai": "^1.0.18",
+    "ai": "^4.0.34",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}
