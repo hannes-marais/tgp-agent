@@ -1,0 +1,18 @@
+{
+  "tasks": {
+    "dev": "deno run --allow-net --allow-read --allow-env --watch server.ts",
+    "dev:react": "deno run --allow-net --allow-read --allow-env --watch server-react.ts",
+    "build": "deno compile --allow-net --allow-read --allow-env --output tgp-agent server-react.ts",
+    "build:simple": "deno compile --allow-net --allow-read --allow-env --output tgp-agent-simple server.ts",
+    "start": "deno run --allow-net --allow-read --allow-env server-react.ts"
+  },
+  "imports": {
+    "@std/http": "https://deno.land/std@0.220.0/http/mod.ts",
+    "@std/path": "https://deno.land/std@0.220.0/path/mod.ts",
+    "@std/mime": "https://deno.land/std@0.220.0/media_types/mod.ts"
+  },
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "react"
+  }
+}

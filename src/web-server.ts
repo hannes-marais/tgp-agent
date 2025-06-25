@@ -153,106 +153,14 @@ const server = createServer(async (req, res) => {
     return;
   }
 
-  // Simple chat interface (fallback)
-  if (pathname === '/simple') {
-    res.setHeader('Content-Type', 'text/html');
-    res.writeHead(200);
-    res.end(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Bruce Cleveland EM - Enterprise Management</title>
-          <style>
-            body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
-            .chat { border: 1px solid #ddd; height: 400px; overflow-y: scroll; padding: 10px; margin: 10px 0; }
-            .input-area { display: flex; gap: 10px; }
-            input { flex: 1; padding: 10px; }
-            button { padding: 10px 20px; }
-            .message { margin: 10px 0; padding: 10px; border-radius: 5px; }
-            .user { background: #e3f2fd; text-align: right; }
-            .assistant { background: #f5f5f5; }
-          </style>
-        </head>
-        <body>
-          <h1>Bruce Cleveland EM - Enterprise Management</h1>
-          <select id="provider">
-            <option value="openai">OpenAI</option>
-            <option value="anthropic">Anthropic</option>
-          </select>
-          <div id="chat" class="chat"></div>
-          <div class="input-area">
-            <input type="text" id="message" placeholder="Type your message..." />
-            <button onclick="sendMessage()">Send</button>
-          </div>
-          
-          <script>
-            async function sendMessage() {
-              const input = document.getElementById('message');
-              const chat = document.getElementById('chat');
-              const provider = document.getElementById('provider').value;
-              
-              if (!input.value.trim()) return;
-              
-              chat.innerHTML += '<div class="message user"><strong>You:</strong> ' + input.value + '</div>';
-              
-              const userMessage = input.value;
-              input.value = '';
-              
-              chat.innerHTML += '<div class="message assistant" id="loading"><strong>AI:</strong> <em>Thinking...</em></div>';
-              chat.scrollTop = chat.scrollHeight;
-              
-              try {
-                const response = await fetch('/api/chat/' + provider, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ 
-                    messages: [{ role: 'user', content: userMessage }] 
-                  })
-                });
-                
-                document.getElementById('loading').remove();
-                
-                const aiMessage = document.createElement('div');
-                aiMessage.className = 'message assistant';
-                aiMessage.innerHTML = '<strong>AI:</strong> <span id="ai-response"></span>';
-                chat.appendChild(aiMessage);
-                
-                const responseSpan = document.getElementById('ai-response');
-                const reader = response.body.getReader();
-                let fullResponse = '';
-                
-                while (true) {
-                  const { done, value } = await reader.read();
-                  if (done) break;
-                  
-                  const chunk = new TextDecoder().decode(value);
-                  fullResponse += chunk;
-                  responseSpan.textContent = fullResponse;
-                  chat.scrollTop = chat.scrollHeight;
-                }
-              } catch (error) {
-                document.getElementById('loading').innerHTML = '<strong>AI:</strong> <em>Error: ' + error.message + '</em>';
-              }
-            }
-            
-            document.getElementById('message').addEventListener('keypress', function(e) {
-              if (e.key === 'Enter') sendMessage();
-            });
-          </script>
-        </body>
-      </html>
-    `);
-    return;
-  }
 
   // 404 for unknown routes
   res.writeHead(404);
-  res.end('Not Found - Try /simple for a chat interface');
+  res.end('Not Found');
 });
 
 const PORT = process.env.PORT || 3001;
 server.listen(Number(PORT), '127.0.0.1', () => {
   console.log(`Bruce Cleveland EM web server running on 127.0.0.1:${PORT}`);
-  console.log(`Chat interface: http://localhost:${PORT}/simple`);
-  console.log(`Available from network: http://[your-ip]:${PORT}/simple`);
+  console.log(`React app: http://localhost:${PORT}`);
 });

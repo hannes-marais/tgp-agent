@@ -44,12 +44,14 @@ case $COMMAND in
       npx vite build
     fi
     
-    # Start production server
+    # Start production server (serves both API and React app)
     nohup npx tsx src/web-server.ts > $LOG_FILE 2>&1 &
     sleep 2
     
     if ps aux | grep -E "tsx.*web-server" | grep -v grep > /dev/null; then
-      echo "✅ Server running on http://localhost:$BACKEND_PORT"
+      echo "✅ Single server running on http://localhost:$BACKEND_PORT"
+      echo "📱 React app: http://localhost:$BACKEND_PORT"
+      echo "🔌 API endpoints: http://localhost:$BACKEND_PORT/api/chat/*"
       echo "📝 Logs: $LOG_FILE"
     else
       echo "❌ Failed to start server!"
