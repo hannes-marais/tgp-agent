@@ -1,12 +1,11 @@
+import { streamText } from 'ai';
+import { openai } from '@ai-sdk/openai';
+import { anthropic } from '@ai-sdk/anthropic';
 import { createServer } from 'http';
 import { URL } from 'url';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import 'dotenv/config';
-
-// EMRouter configuration
-const EMROUTER_ENDPOINT = 'http://localhost:8123';
-const EMROUTER_API_KEY = 'emr-prod-2024-xa7k9m3n5p'; // Production token from emrouter.yaml
 
 const server = createServer(async (req, res) => {
   // Enable CORS
@@ -23,7 +22,7 @@ const server = createServer(async (req, res) => {
   const url = new URL(req.url || '', `http://${req.headers.host}`);
   const pathname = url.pathname;
 
-  // API Routes for chat
+  // API Routes for chat - Compatible with useChat hook
   if (pathname.startsWith('/api/chat/') && req.method === 'POST') {
     const provider = pathname.split('/').pop();
     
@@ -33,70 +32,40 @@ const server = createServer(async (req, res) => {
       try {
         const { messages } = JSON.parse(body);
 
-        // Map provider to EMRouter archetype
         let model;
         if (provider === 'openai') {
-          model = 'bruce-cleveland'; // Use Bruce Cleveland archetype from EMRouter
+          model = openai('gpt-4o');
         } else if (provider === 'anthropic') {
-          model = 'emma'; // Use Emma archetype for creative responses
+          model = anthropic('claude-3-haiku-20240307');
         } else {
           res.writeHead(400);
           res.end('Invalid provider');
           return;
         }
 
-        // Forward request to EMRouter
-        const emrouterResponse = await fetch(`${EMROUTER_ENDPOINT}/v1/chat/completions`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${EMROUTER_API_KEY}`
-          },
-          body: JSON.stringify({
-            model: model,
-            messages: messages,
-            stream: true
-          })
+        const result = await streamText({
+          model,
+          messages,
         });
 
-        if (!emrouterResponse.ok) {
-          throw new Error(`EMRouter error: ${emrouterResponse.status} ${emrouterResponse.statusText}`);
-        }
-
-        // Set up streaming response for useChat compatibility
-        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-        res.setHeader('Transfer-Encoding', 'chunked');
-        res.writeHead(200);
-
-        // Stream the response from EMRouter
-        if (emrouterResponse.body) {
-          const reader = emrouterResponse.body.getReader();
-          const decoder = new TextDecoder();
-
+        // Use the built-in response handler for useChat compatibility
+        const response = result.toDataStreamResponse();
+        
+        // Copy headers from the response
+        response.headers.forEach((value, key) => {
+          res.setHeader(key, value);
+        });
+        
+        res.writeHead(response.status);
+        
+        // Stream the response body
+        const reader = response.body?.getReader();
+        if (reader) {
           try {
             while (true) {
               const { done, value } = await reader.read();
               if (done) break;
-
-              const chunk = decoder.decode(value, { stream: true });
-              const lines = chunk.split('\n');
-
-              for (const line of lines) {
-                if (line.startsWith('data: ') && !line.includes('[DONE]')) {
-                  try {
-                    const data = JSON.parse(line.slice(6));
-                    if (data.choices && data.choices[0] && data.choices[0].delta && data.choices[0].delta.content) {
-                      // Convert EMRouter format to useChat format
-                      const content = data.choices[0].delta.content;
-                      res.write(`data: ${JSON.stringify({ content })}\n\n`);
-                    }
-                  } catch (e) {
-                    // Skip invalid JSON
-                  }
-                } else if (line.includes('[DONE]')) {
-                  res.write('data: [DONE]\n\n');
-                }
-              }
+              res.write(value);
             }
           } finally {
             reader.releaseLock();
@@ -105,8 +74,8 @@ const server = createServer(async (req, res) => {
         
         res.end();
 
-      } catch (error) {
-        console.error('EMRouter request error:', error);
+      } catch (error: any) {
+        console.error('API Error:', error);
         res.writeHead(500);
         res.end(`Error: ${error.message}`);
       }
@@ -114,18 +83,29 @@ const server = createServer(async (req, res) => {
     return;
   }
 
-  // Serve React app for all other routes
-  if (pathname === '/' || !pathname.includes('.')) {
+  // Serve static assets from public folder (favicon, logo)
+  if (pathname.startsWith('/favicon') || pathname.startsWith('/tgp-logo')) {
     try {
-      const html = readFileSync(join(process.cwd(), 'dist', 'index.html'), 'utf-8');
-      res.setHeader('Content-Type', 'text/html');
-      res.writeHead(200);
-      res.end(html);
+      const filePath = join(process.cwd(), 'dist', pathname);
+      if (existsSync(filePath)) {
+        const content = readFileSync(filePath);
+        
+        // Set appropriate content type
+        if (pathname.endsWith('.ico')) {
+          res.setHeader('Content-Type', 'image/x-icon');
+        } else if (pathname.endsWith('.png')) {
+          res.setHeader('Content-Type', 'image/png');
+        } else if (pathname.endsWith('.webp')) {
+          res.setHeader('Content-Type', 'image/webp');
+        }
+        
+        res.writeHead(200);
+        res.end(content);
+        return;
+      }
     } catch (error) {
-      res.writeHead(404);
-      res.end('File not found');
+      // Fall through to next handler
     }
-    return;
   }
 
   // Serve static assets from dist folder
@@ -151,6 +131,20 @@ const server = createServer(async (req, res) => {
     }
   }
 
+  // Serve React app for all other routes
+  if (pathname === '/' || !pathname.includes('.')) {
+    try {
+      const html = readFileSync(join(process.cwd(), 'dist', 'index.html'), 'utf-8');
+      res.setHeader('Content-Type', 'text/html');
+      res.writeHead(200);
+      res.end(html);
+    } catch (error) {
+      res.writeHead(404);
+      res.end('File not found');
+    }
+    return;
+  }
+
   // Simple chat interface (fallback)
   if (pathname === '/simple') {
     res.setHeader('Content-Type', 'text/html');
@@ -169,21 +163,17 @@ const server = createServer(async (req, res) => {
             .message { margin: 10px 0; padding: 10px; border-radius: 5px; }
             .user { background: #e3f2fd; text-align: right; }
             .assistant { background: #f5f5f5; }
-            .provider-info { background: #fff3cd; padding: 10px; margin: 10px 0; border-radius: 5px; }
           </style>
         </head>
         <body>
-          <h1>🤖 Bruce Cleveland EM - Enterprise Management</h1>
-          <div class="provider-info">
-            <strong>🔗 Powered by EMRouter:</strong> Using Bruce Cleveland archetype from EMgine
-          </div>
+          <h1>Bruce Cleveland EM - Enterprise Management</h1>
           <select id="provider">
-            <option value="openai">Bruce Cleveland (EMRouter)</option>
-            <option value="anthropic">Emma (EMRouter)</option>
+            <option value="openai">OpenAI</option>
+            <option value="anthropic">Anthropic</option>
           </select>
           <div id="chat" class="chat"></div>
           <div class="input-area">
-            <input type="text" id="message" placeholder="Ask Bruce about market engineering..." />
+            <input type="text" id="message" placeholder="Type your message..." />
             <button onclick="sendMessage()">Send</button>
           </div>
           
@@ -228,20 +218,9 @@ const server = createServer(async (req, res) => {
                   if (done) break;
                   
                   const chunk = new TextDecoder().decode(value);
-                  const lines = chunk.split('\\n');
-                  
-                  for (const line of lines) {
-                    if (line.startsWith('data: ') && !line.includes('[DONE]')) {
-                      try {
-                        const data = JSON.parse(line.slice(6));
-                        if (data.content) {
-                          fullResponse += data.content;
-                          responseSpan.textContent = fullResponse;
-                          chat.scrollTop = chat.scrollHeight;
-                        }
-                      } catch (e) {}
-                    }
-                  }
+                  fullResponse += chunk;
+                  responseSpan.textContent = fullResponse;
+                  chat.scrollTop = chat.scrollHeight;
                 }
               } catch (error) {
                 document.getElementById('loading').innerHTML = '<strong>AI:</strong> <em>Error: ' + error.message + '</em>';
@@ -265,8 +244,7 @@ const server = createServer(async (req, res) => {
 
 const PORT = process.env.PORT || 3001;
 server.listen(Number(PORT), '127.0.0.1', () => {
-  console.log(`🚀 TGP Agent web server running on 0.0.0.0:${PORT}`);
-  console.log(`🔗 EMRouter endpoint: ${EMROUTER_ENDPOINT}`);
-  console.log(`💬 Chat interface: http://localhost:${PORT}/simple`);
-  console.log(`🌐 Available from network: http://[your-ip]:${PORT}/simple`);
+  console.log(`Bruce Cleveland EM web server running on 127.0.0.1:${PORT}`);
+  console.log(`Chat interface: http://localhost:${PORT}/simple`);
+  console.log(`Available from network: http://[your-ip]:${PORT}/simple`);
 });
