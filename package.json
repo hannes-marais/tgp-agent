@@ -31,9 +31,9 @@
   },
   "homepage": "https://github.com/hannes-marais/tgp-agent#readme",
   "dependencies": {
-    "@ai-sdk/anthropic": "^1.0.8",
     "@ai-sdk/openai": "^1.0.18",
     "ai": "^4.0.34",
+    "body-parser": "^2.2.0",
     "dotenv": "^16.4.7",
     "express": "^5.1.0",
     "html2pdf.js": "^0.10.3",

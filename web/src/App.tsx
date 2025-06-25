@@ -12,7 +12,7 @@ export default function App() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   
-  const [provider, setProvider] = useState('openai');
+  
 
   const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
     api: '/api/chat',
@@ -215,28 +215,33 @@ export default function App() {
     }
   }
 
+  const [isPinLoading, setIsPinLoading] = useState(false);
+
   const handlePinSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
+    setIsPinLoading(true);
+    setPinError('');
     try {
       const response = await fetch('/api/validate-pin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pin: pinInput })
-      })
-      const { valid } = await response.json()
+      });
+      const data = await response.json();
       
-      if (valid) {
-        setIsAuthenticated(true)
-        setPinError('')
+      if (data.valid) {
+        setIsAuthenticated(true);
       } else {
-        setPinError('Invalid PIN code. Please try again.')
-        setPinInput('')
+        setPinError(data.error || 'Invalid PIN code. Please try again.');
+        setPinInput('');
       }
     } catch {
-      setPinError('Error validating PIN. Please try again.')
-      setPinInput('')
+      setPinError('Error validating PIN. Please try again.');
+      setPinInput('');
+    } finally {
+      setIsPinLoading(false);
     }
-  }
+  };
 
   const handlePinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPinInput(e.target.value)
@@ -290,8 +295,8 @@ export default function App() {
                 {pinError && <div className="pin-error">{pinError}</div>}
               </div>
               
-              <button type="submit" className="pin-submit">
-                Start consultation
+              <button type="submit" className="pin-submit" disabled={isPinLoading}>
+                {isPinLoading ? 'Validating...' : 'Start consultation'}
               </button>
             </form>
           </div>

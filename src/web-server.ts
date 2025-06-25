@@ -18,10 +18,12 @@ const emrouter = createOpenAI({
   apiKey: process.env.EMROUTER_API_KEY
 });
 
+import bodyParser from 'body-parser';
+
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(express.json());
+app.use(bodyParser.json());
 
 // Serve static files from the 'dist' directory
 app.use(express.static(join(process.cwd(), 'dist')));
