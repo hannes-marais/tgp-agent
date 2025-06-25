@@ -1,17 +1,11 @@
 import { streamText } from 'ai';
-import { createOpenAI } from '@ai-sdk/openai';
+import { openai } from '@ai-sdk/openai';
 import { anthropic } from '@ai-sdk/anthropic';
 import { createServer } from 'http';
 import { URL } from 'url';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import 'dotenv/config';
-
-// Create EMRouter client using OpenAI SDK
-const emrouter = createOpenAI({
-  baseURL: "http://localhost:8123/v1",
-  apiKey: "emr-prod-2024-xa7k9m3n5p"
-});
 
 const server = createServer(async (req, res) => {
   // Enable CORS
@@ -40,9 +34,9 @@ const server = createServer(async (req, res) => {
 
         let model;
         if (provider === 'openai') {
-          model = emrouter('bruce-cleveland');
+          model = openai('gpt-4o');
         } else if (provider === 'anthropic') {
-          model = emrouter('emma');
+          model = anthropic('claude-3-haiku-20240307');
         } else {
           res.writeHead(400);
           res.end('Invalid provider');
