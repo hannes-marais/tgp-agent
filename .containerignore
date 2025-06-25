@@ -1,0 +1,11 @@
+node_modules
+dist
+.git
+.env
+*.log
+.DS_Store
+.vscode
+.idea
+HARDCODED_VALUES_REPORT.md
+README.md
+*.sh

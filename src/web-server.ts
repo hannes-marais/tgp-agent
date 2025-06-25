@@ -181,6 +181,7 @@ const server = createServer(async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3001;
+
 server.listen(Number(PORT), '127.0.0.1', () => {
   console.log(`Bruce Cleveland EM web server running on 127.0.0.1:${PORT}`);
   console.log(`React app: http://localhost:${PORT}`);

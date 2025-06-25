@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "./run.sh dev",
-    "build": "./run.sh build",
+    "build": "vite build",
     "start": "./run.sh prod",
     "stop": "./run.sh stop",
     "logs": "./run.sh logs",

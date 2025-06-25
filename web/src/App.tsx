@@ -103,35 +103,55 @@ export default function App() {
   if (!isAuthenticated) {
     return (
       <div className="pin-overlay">
-        <div className="pin-dialog">
-          <div className="pin-header">
-            <div className="pin-logos">
-              <img src="/tgp-logo.webp" alt="Traction Gap Partners" className="pin-logo" />
-              <img src="/bruce-thumb.jpg" alt="Bruce Cleveland" className="pin-bruce-photo" />
+        <div className="pin-container-wrapper">
+          <div className="pin-stats-panel">
+            <div className="stats-content">
+              <div className="stats-row">
+                <div className="stat-item">
+                  <div className="stat-number">80%</div>
+                  <div className="stat-text">of startups fail</div>
+                </div>
+                <div className="stat-item">
+                  <div className="stat-number">60%</div>
+                  <div className="stat-text">of new products fail from mature companies</div>
+                </div>
+              </div>
+              <div className="stat-insight">
+                <p>The #1 reason for startup and new product failure is no market need.</p>
+                <p className="highlight">To succeed, you must engineer a market.</p>
+              </div>
             </div>
-            <h2>Bruce Cleveland EM</h2>
           </div>
-          
-          <form onSubmit={handlePinSubmit} className="pin-form">
-            <div className="pin-input-group">
-              <label htmlFor="pin">Enter PIN to continue:</label>
-              <input
-                id="pin"
-                type="password"
-                value={pinInput}
-                onChange={handlePinChange}
-                className={`pin-input ${pinError ? 'pin-error' : ''}`}
-                placeholder="• • • •"
-                maxLength={4}
-                autoFocus
-              />
-              {pinError && <div className="pin-error">{pinError}</div>}
+          <div className="pin-dialog">
+            <div className="pin-header">
+              <div className="pin-logos">
+                <img src="/tgp-logo.webp" alt="Traction Gap Partners" className="pin-logo" />
+                <img src="/bruce-thumb.jpg" alt="Bruce Cleveland" className="pin-bruce-photo" />
+              </div>
+              <h2>Bruce Cleveland EM</h2>
             </div>
             
-            <button type="submit" className="pin-submit">
-              Start consultation
-            </button>
-          </form>
+            <form onSubmit={handlePinSubmit} className="pin-form">
+              <div className="pin-input-group">
+                <label htmlFor="pin">Enter PIN to continue:</label>
+                <input
+                  id="pin"
+                  type="password"
+                  value={pinInput}
+                  onChange={handlePinChange}
+                  className={`pin-input ${pinError ? 'pin-error' : ''}`}
+                  placeholder="• • • •"
+                  maxLength={4}
+                  autoFocus
+                />
+                {pinError && <div className="pin-error">{pinError}</div>}
+              </div>
+              
+              <button type="submit" className="pin-submit">
+                Start consultation
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     )

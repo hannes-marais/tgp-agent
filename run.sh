@@ -95,16 +95,71 @@ case $COMMAND in
     fi
     ;;
     
+  pod:build)
+    echo "🐳 Building container image..."
+    buildah bud -t tgp-agent:latest .
+    echo "✅ Container image built: tgp-agent:latest"
+    ;;
+    
+  pod:run)
+    echo "🚀 Starting TGP Agent in podman..."
+    # Stop existing container if running
+    podman stop tgp-agent 2>/dev/null || true
+    podman rm tgp-agent 2>/dev/null || true
+    
+    # Run new container with host networking
+    podman run -d \
+      --name tgp-agent \
+      --network host \
+      --env-file .env \
+      --restart unless-stopped \
+      tgp-agent:latest
+    
+    echo "✅ Container started: tgp-agent"
+    echo "📱 Access at: http://localhost:3001"
+    echo "📝 View logs: podman logs -f tgp-agent"
+    ;;
+    
+  pod:stop)
+    echo "🛑 Stopping podman container..."
+    podman stop tgp-agent
+    podman rm tgp-agent
+    echo "✅ Container stopped and removed"
+    ;;
+    
+  pod:logs)
+    echo "📝 Container logs:"
+    podman logs -f tgp-agent
+    ;;
+    
+  pod:status)
+    echo "📊 Container status:"
+    podman ps -a --filter name=tgp-agent
+    ;;
+    
+  pod:shell)
+    echo "🐚 Opening shell in container..."
+    podman exec -it tgp-agent /bin/sh
+    ;;
+    
   *)
     echo "TGP Agent Runner"
     echo "Usage: ./run.sh [command]"
     echo ""
     echo "Commands:"
-    echo "  dev    - Start development mode (frontend + backend)"
-    echo "  build  - Build production assets"
-    echo "  prod   - Start production server"
-    echo "  stop   - Stop all processes"
-    echo "  logs   - View production logs"
-    echo "  status - Check process status"
+    echo "  dev        - Start development mode (frontend + backend)"
+    echo "  build      - Build production assets"
+    echo "  prod       - Start production server (native)"
+    echo "  stop       - Stop all processes"
+    echo "  logs       - View production logs"
+    echo "  status     - Check process status"
+    echo ""
+    echo "Podman/Container Commands:"
+    echo "  pod:build  - Build container image"
+    echo "  pod:run    - Run container"
+    echo "  pod:stop   - Stop and remove container"
+    echo "  pod:logs   - View container logs"
+    echo "  pod:status - Check container status"
+    echo "  pod:shell  - Open shell in container"
     ;;
 esac
