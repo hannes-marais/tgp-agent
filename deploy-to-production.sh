@@ -14,21 +14,36 @@ fi
 
 echo "✅ Frontend built successfully!"
 
-# The backend web-server.ts will serve the built frontend files from dist/
-# and handle API endpoints - this matches your OpenResty config
+# Stop existing production server
+echo "  🛑 Stopping existing production server..."
+pkill -f 'node.*web-server' || true
+pkill -f 'tsx.*web-server' || true
+
+# Wait a moment for cleanup
+sleep 2
+
+# Start production server
+echo "  🚀 Starting production server..."
+nohup npm run web > /tmp/tgp-agent.log 2>&1 &
+
+# Wait a moment for server to start
+sleep 3
+
+# Check if server started successfully
+if ps aux | grep -E "(node|tsx).*web-server" | grep -v grep > /dev/null; then
+    echo "✅ Production server started successfully!"
+    echo "📊 Server running on http://localhost:3001"
+    echo "🌐 Live site: https://tgp.mxnxp.com"
+    echo "📝 Logs: tail -f /tmp/tgp-agent.log"
+else
+    echo "❌ Failed to start production server!"
+    echo "📝 Check logs: cat /tmp/tgp-agent.log"
+    exit 1
+fi
 
 echo ""
 echo "📁 Built files:"
 ls -la dist/
 
 echo ""
-echo "🔄 Your current OpenResty config proxies:"
-echo "  https://tgp.mxnxp.com/ → http://localhost:3001/"
-echo "  https://tgp.mxnxp.com/api/ → http://localhost:3001/api/"
-echo ""
-echo "🚀 To deploy to production:"
-echo "  1. Stop any existing backend: pkill -f 'node.*web-server'"
-echo "  2. Start the backend: nohup npm run web > /tmp/tgp-agent.log 2>&1 &"
-echo "  3. Check logs: tail -f /tmp/tgp-agent.log"
-echo ""
-echo "✅ Ready for deployment!"
+echo "✅ Deployment completed successfully!"
